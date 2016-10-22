@@ -1,0 +1,12 @@
+App to mock API
+
+
+
+- User should have the possibility to mock web api
+- should have the possibility to add any endpoint and content for GET and POST
+- app should notice users for usage of api
+- app should sent info to users for succes / fail
+- support for many formats - json / html
+- possibility to change error status codes / messages
+- store of logs for requests + response
+- possibillity  to retry callbacks  /based on logs
