@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from .models import MockedApi
-
+from .models import MockedApiResult
 
 logger = logging.getLogger(__name__)
 
@@ -41,14 +41,26 @@ def mocked_apis(request):
    _url = request.path.replace("/apimock/mocked/", '')
    for mocked_api in  MockedApi.objects.all():
      if re.match(mocked_api.url_to_api, _url):
+
        # todo dodac logowanie
        logger.info('Log Info')
        logger.critical("asdasa")
        logger.debug('Usage of API: {} for url {} '.format(mocked_api, _url))
-       if request.GET.get('format') == "json":
-         return JsonResponse(mocked_api.mocked_return_value)
-
-       return request(mocked_api.mocked_return_value, "simple_http.html")
+       # if mocked_api.http_method==request.method:
+       _callback_success = True
+       try:
+         if request.GET.get('format') == "json":
+           return JsonResponse(mocked_api.mocked_return_value)
+         return HttpResponse(mocked_api.simpleHTML)
+       except:
+         print "warning!!!!"
+         _callback_success = False
+       finally:
+         MockedApiResult.objects.create(original_api=mocked_api,
+                                        mocked_return_value=mocked_api.mocked_return_value,
+                                        exact_url=_url,
+                                        callback_success=_callback_success
+                                        )
 
    return HttpResponse("witaj kolezko! w mocked apis wszedles na adres :v " + str(request.path))
    return HttpResponse("witaj kolezko! ")
