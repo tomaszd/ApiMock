@@ -9,4 +9,5 @@ App to mock API
 - support for many formats - json / html
 - possibility to change error status codes / messages
 - store of logs for requests + response
-- possibillity  to retry callbacks  /based on logs
+- possibillity  to retry callbacks  /based on 
+logs
