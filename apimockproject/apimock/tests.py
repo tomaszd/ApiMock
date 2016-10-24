@@ -41,3 +41,22 @@ class MockedApiGETTestCase(TestCase):
         response = c.get("/apimock/mocked/non_exsitng-url")
         self.assertEqual(response.status_code, 404)
         self.assertEqual('MockedApi 404', response.content)
+
+
+class MockedApiGETTestCaseParam(TestCase):
+
+    def setUp(self):
+        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)/$",
+                                 mocked_return_value={"amount": "10PLN"})
+
+    def test_mocked_get_api(self):
+        """check if simple mocked apis template could be returned"""
+        c = Client()
+        response = c.get("/apimock/mocked/api/account/154/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            '<table border="1"><tr><th>amount</th><td>10PLN</td></tr></table>', response.content)
+        response2 = c.get("/apimock/mocked/api/account/187/")
+        self.assertEqual(response2.status_code, 200)
+        self.assertIn(
+            '<table border="1"><tr><th>amount</th><td>10PLN</td></tr></table>', response2.content)
