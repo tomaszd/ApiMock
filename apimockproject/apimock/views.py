@@ -33,8 +33,6 @@ def mocked_param(request, *args, **kwargs):
 
 
 
-
-
 def mocked_apis(request):
    """request.path
     u'/apimock/mocked/csdfdsfdsfsdfsdfs'"""
@@ -48,12 +46,16 @@ def mocked_apis(request):
        logger.debug('Usage of API: {} for url {} '.format(mocked_api, _url))
        # if mocked_api.http_method==request.method:
        _callback_success = True
+       if request.method != mocked_api.http_method:
+         return HttpResponse(mocked_api.Error403, status=403)
+
        try:
          if request.GET.get('format') == "json":
            return JsonResponse(mocked_api.mocked_return_value)
          return HttpResponse(mocked_api.simpleHTML)
        except:
-         print "warning!!!!"
+         # wrong used API
+         return HttpResponse(mocked_api.Error403, status=403)
          _callback_success = False
        finally:
          MockedApiResult.objects.create(original_api=mocked_api,
@@ -61,6 +63,4 @@ def mocked_apis(request):
                                         exact_url=_url,
                                         callback_success=_callback_success
                                         )
-
-   return HttpResponse("witaj kolezko! w mocked apis wszedles na adres :v " + str(request.path))
-   return HttpResponse("witaj kolezko! ")
+   return HttpResponse(MockedApi.Error404(), status=404)
