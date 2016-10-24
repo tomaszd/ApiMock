@@ -126,18 +126,23 @@ class MockedApiPOSTTestCase(TestCase):
 class PostAlgorithmTestCase(TestCase):
 
     def setUp(self):
-        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)$",
+        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+/)$",
                                  mocked_return_value={
                                      "value": "There is a product bought"},
-                                 http_method="POST",
+                                 http_method="GET",
+                                 easily_updatable="True",
                                  Error_403="Send me Money")
 
-    def test_mocked_get_list_template(self):
+    def test_mocked_api_set_value(self):
         """check if using PostApi is possible"""
         c = Client()
-        response = c.get("/apimock/mocked/api/account/45/", data={"price":"100"})
+        response = c.get("/apimock/mocked/api/account/45/?format=json")
         self.assertEqual(response.status_code, 200)
-        self.assertIn('<table border="1"><tr><th>value</th><td>There is a product bought</td></tr></table>'
-,
+        self.assertIn('{"value": "There is a product bought"}',
                       response.content)
-
+        response = c.post(
+            "/apimock/mocked/api/account/45/?format=json", data={"PLN": 100})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('{"PLN": "100"}', response.content)
+        response = c.get("/apimock/mocked/api/account/45/?format=json")
+        self.assertIn('{"PLN": "100"}', response.content)
