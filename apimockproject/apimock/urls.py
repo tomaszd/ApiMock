@@ -20,6 +20,5 @@ from django.conf.urls import url
 urlpatterns = [
     url(r'^$', views.home, name='home'),
     url(r'^mocked/$', views.mocked, name='mocked'),
-    url(r'^mock/(?P<width>\d+)/$', views.mocked_param, name='mocked_param'),
     url(r'^mocked/', views.mocked_apis, name='mocked_apis'),
 ]

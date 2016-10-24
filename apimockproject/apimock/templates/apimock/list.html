@@ -1,0 +1,7 @@
+<h1>Here is the list of all possible apis:</h1>
+<ul>
+{%for mocked_api in mocked_apis %}
+   <li>method: <b>{{mocked_api.http_method}}</b>, Api UrlPattern: <i>{{mocked_api.url_to_api}}</i> , </li>
+   
+{%endfor%}
+</ul>

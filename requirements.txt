@@ -2,6 +2,7 @@ Django==1.10.2
 json2html==1.0.1
 jsonfield==1.0.3
 pbr==1.10.0
+requests==2.11.1
 six==1.10.0
 stevedore==1.18.0
 virtualenv==15.0.3
