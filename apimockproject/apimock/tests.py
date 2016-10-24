@@ -78,3 +78,46 @@ class MockedApiGETTestCaseParam(TestCase):
         self.assertEqual(response2.status_code, 200)
         self.assertIn(
             '<table border="1"><tr><th>amount</th><td>10PLN</td></tr></table>', response2.content)
+
+
+class MockedApiPOSTTestCase(TestCase):
+
+    def setUp(self):
+        MockedApi.objects.create(url_to_api="^mocked_post$",
+                                 mocked_return_value={
+                                     "value": "test_return_value_for_post"},
+                                 http_method="POST",
+                                 Error_403="wrong used test Data,this is api for POST")
+
+    def test_mocked_get_list_template(self):
+        """check if simple mocked apis template could be returned"""
+        c = Client()
+        response = c.get("/apimock/mocked/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Here is the list of all possible apis:",
+                      response.content)
+        self.assertIn("^mocked_post$", response.content)
+
+    def test_mocked_post_simpleHtml(self):
+        """check if simple mocked post simplethml  could be returned"""
+        c = Client()
+        response = c.post("/apimock/mocked/mocked_post", data={"key": "value"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            '<table border="1"><tr><th>value</th><td>test_return_value_for_post</td></tr></table>', response.content)
+
+    def test_mocked_post_json_format(self):
+        """check if simple mocked json format get could be returned for post """
+        c = Client()
+        response = c.post("/apimock/mocked/mocked_post?format=json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            '{"value": "test_return_value_for_post"}', response.content)
+
+    def test_custom_403(self):
+        """check if proper 403 is returned when user use GET for post mocked apis"""
+        c = Client()
+        response = c.get("/apimock/mocked/mocked_post?format=json")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            "wrong used test Data,this is api for POST", response.content)
