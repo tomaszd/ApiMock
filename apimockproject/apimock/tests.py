@@ -121,3 +121,23 @@ class MockedApiPOSTTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             "wrong used test Data,this is api for POST", response.content)
+
+
+class PostAlgorithmTestCase(TestCase):
+
+    def setUp(self):
+        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)$",
+                                 mocked_return_value={
+                                     "value": "There is a product bought"},
+                                 http_method="POST",
+                                 Error_403="Send me Money")
+
+    def test_mocked_get_list_template(self):
+        """check if using PostApi is possible"""
+        c = Client()
+        response = c.get("/apimock/mocked/api/account/45/", data={"price":"100"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('<table border="1"><tr><th>value</th><td>There is a product bought</td></tr></table>'
+,
+                      response.content)
+
