@@ -9,7 +9,9 @@ class MockedApiGETTestCase(TestCase):
 
     def setUp(self):
         MockedApi.objects.create(url_to_api="^mocked_get$",
-                                 mocked_return_value={"value": "testValue"})
+                                 mocked_return_value={"value": "testValue"},
+                                 http_method="GET",
+                                 Error_403="wrong used test Data")
 
     def test_mocked_get_list_template(self):
         """check if simple mocked apis template could be returned"""
@@ -36,18 +38,34 @@ class MockedApiGETTestCase(TestCase):
         self.assertEqual('{"value": "testValue"}', response.content)
 
     def test_custom_404(self):
-        """check if proper 404 is returned"""
+        """Check if proper custom 404 is returned"""
         c = Client()
         response = c.get("/apimock/mocked/non_exsitng-url")
         self.assertEqual(response.status_code, 404)
         self.assertEqual('MockedApi 404', response.content)
+
+    def test_custom_404(self):
+        """Check if proper custom 404 is returned"""
+        c = Client()
+        response = c.get("/apimock/mocked/non_exsitng-url")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual('MockedApi 404', response.content)
+
+    def test_custom_403(self):
+        """Check if proper 403 is returned when user is using
+           e.g. POST for apis that are created for service GET"""
+        c = Client()
+        response = c.post("/apimock/mocked/mocked_get", data={"post": "data"})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual("wrong used test Data", response.content)
 
 
 class MockedApiGETTestCaseParam(TestCase):
 
     def setUp(self):
         MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)/$",
-                                 mocked_return_value={"amount": "10PLN"})
+                                 mocked_return_value={"amount": "10PLN"},
+                                 http_method="GET")
 
     def test_mocked_get_api(self):
         """check if simple mocked apis template could be returned"""
