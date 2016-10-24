@@ -7,6 +7,7 @@ import jsonfield
 
 # Create your models here.
 class MockedApi(models.Model):
+
     """Defines the URL pattern Plus behavior of mocked Api"""
     HTTP_Methods = (
         ("GET", "GET"),
@@ -27,6 +28,9 @@ class MockedApi(models.Model):
     # if easily_updatable is set=>MockedApiResult could be easily manipulated
     # via POST .PATCH etc
     easily_updatable = models.BooleanField(default=False)
+    # Needed for mock complicated behavior of api
+    behavior_after_post = models.CharField(
+        max_length=1000, null=True, blank=True)
 
     @property
     def simpleHTML(self):
@@ -45,6 +49,7 @@ class MockedApi(models.Model):
 
 
 class MockedApiResult(models.Model):
+
     """Defines the URL result. Needed for storing info about api call"""
     original_api = models.ForeignKey(MockedApi)
     mocked_return_value = jsonfield.JSONField(
@@ -61,11 +66,12 @@ class MockedApiResult(models.Model):
 
 
 class MockedAPiValue(models.Model):
+
     """Whenever an api is called that match the url. The volatile stored value
-    MockedAPiValue is created. it is used then to store the results and 
+    MockedAPiValue is created. it is used then to store the results and
     manipulate the data. This is an instance of proper MockedApiURLs.
-    
-    needed for cases like 
+
+    needed for cases like
     http://api/account/123/product_buy/ ,data="price":"10,
     then to decrease http://api/account/123/ user money.
     """

@@ -1,19 +1,18 @@
 import logging
 import re
+import requests
 
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 
+from .models import MockedAPiValue
 from .models import MockedApi
 from .models import MockedApiResult
-from .models import MockedAPiValue
 
 
 logger = logging.getLogger(__name__)
-
-
-from django.views.decorators.csrf import csrf_exempt
 
 
 def home(request):
@@ -37,10 +36,11 @@ def get_cached_updatable_response(request, _url):
             cached = MockedAPiValue.objects.get(exact_url=_url)
             if request.GET.get('format') == "json":
                 _response = JsonResponse(
-                     cached.mocked_return_value, safe=False)
+                    cached.mocked_return_value, safe=False)
             else:
                 _response = HttpResponse(cached.simpleHTML)
             return _response
+
 
 def set_updatable_mocked_response(request, _url):
     if request.method == "POST":
@@ -49,7 +49,7 @@ def set_updatable_mocked_response(request, _url):
             cached.mocked_return_value = request.POST.dict()
             cached.save()
             _response = JsonResponse(
-                     cached.mocked_return_value, safe=False)
+                cached.mocked_return_value, safe=False)
             return _response
 
 
@@ -64,8 +64,9 @@ def mocked_apis(request):
             # if mocked_api.http_method==request.method:
             # Get instanlty the cached version that is volatiole and could be
             # changed:
+
             if mocked_api.easily_updatable:
-                _response = set_updatable_mocked_response(request , _url)
+                _response = set_updatable_mocked_response(request, _url)
                 if _response:
                     return _response
 
@@ -78,6 +79,10 @@ def mocked_apis(request):
 
             if request.method != mocked_api.http_method:
                 return HttpResponse(mocked_api.Error_403, status=403)
+            # special case for complicated logic of posts
+            if mocked_api.behavior_after_post and request.method == "POST":
+                exec(mocked_api.behavior_after_post)
+
             _response = ""
             try:
                 if request.GET.get('format') == "json":
@@ -96,7 +101,6 @@ def mocked_apis(request):
                     MockedAPiValue.objects.create(original_api=mocked_api,
                                                   mocked_return_value=mocked_api.mocked_return_value,
                                                   exact_url=_url)
-
 
                 logger.debug(
                     "Usage of API: {} for url {} :Response_was: {},_status={}"

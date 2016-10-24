@@ -1,7 +1,7 @@
 import json
 
-from django.test import TestCase
 from apimock.models import MockedApi
+from django.test import TestCase
 from django.test.client import Client
 
 
@@ -36,13 +36,6 @@ class MockedApiGETTestCase(TestCase):
         response = c.get("/apimock/mocked/mocked_get?format=json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual('{"value": "testValue"}', response.content)
-
-    def test_custom_404(self):
-        """Check if proper custom 404 is returned"""
-        c = Client()
-        response = c.get("/apimock/mocked/non_exsitng-url")
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual('MockedApi 404', response.content)
 
     def test_custom_404(self):
         """Check if proper custom 404 is returned"""
@@ -123,14 +116,14 @@ class MockedApiPOSTTestCase(TestCase):
             "wrong used test Data,this is api for POST", response.content)
 
 
-class PostAlgorithmTestCase(TestCase):
+class EasyUpdateTestCase(TestCase):
 
     def setUp(self):
-        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+/)$",
+        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)/$",
                                  mocked_return_value={
                                      "value": "There is a product bought"},
                                  http_method="GET",
-                                 easily_updatable="True",
+                                 easily_updatable=True,
                                  Error_403="Send me Money")
 
     def test_mocked_api_set_value(self):
@@ -146,3 +139,37 @@ class PostAlgorithmTestCase(TestCase):
         self.assertIn('{"PLN": "100"}', response.content)
         response = c.get("/apimock/mocked/api/account/45/?format=json")
         self.assertIn('{"PLN": "100"}', response.content)
+
+
+class PostLogicTestCase(TestCase):
+
+    """Needed for  testing complicated logic of API mocks """
+
+    def setUp(self):
+        MockedApi.objects.create(
+            url_to_api="^api/account/(?P<account>\d+)/product_buy/$",
+            mocked_return_value="product was bought",
+            http_method="POST",
+            behavior_after_post="price=int(request.POST['price']);account_url=request.get_raw_uri().split('product_buy')[0];old_account=int(requests.get(account_url+'?format=json').json()['account']);new_account=old_account-price;requests.post(account_url+'?format=json',data={'account':str(new_account)})",
+            Error_403="Send me Money")
+
+        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)/$",
+                                 mocked_return_value={
+                                     "account": "555"},
+                                 http_method="GET",
+                                 easily_updatable=True,
+                                 Error_403="Send me Money")
+
+    def test_mocked_api_set_value(self):
+        """check if using PostApi is possible
+        It should create new values in old api"""
+        c = Client()
+        response = c.get("/apimock/mocked/api/account/45/?format=json")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('{"account": "555"}', response.content)
+        response = c.post(
+            "/apimock/mocked/api/account/45/product_buy/?format=json", data={"price": 100})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("product was bought", response.content)
+        response = c.get("/apimock/mocked/api/account/45/?format=json")
+        self.assertIn({"account": "455"}, response.content)
