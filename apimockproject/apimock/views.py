@@ -20,6 +20,11 @@ from .models import MockedApiResult
 logger = logging.getLogger(__name__)
 
 
+class MyAPIException(Exception):
+    "nice place to declare some user defined exception.Pass for now"
+    pass
+
+
 def home(request):
     return HttpResponse("Welcome in ApiMock.Check the used APIs in {} :"
                         " Use APIs by entering url : {} ".format(reverse('mocked'),
@@ -33,6 +38,11 @@ def mocked(request):
                   'apimock/list.html',
                   {"mocked_apis": mocked_apis}
                   )
+
+
+def get_additional_params(request):
+    additional_params = request.POST.dict().update(request.GET.dict())
+    return additional_params
 
 
 def get_cached_updatable_response(request, _url):
@@ -70,6 +80,8 @@ def patch_updatable_mocked_response(request, _url):
             cached = MockedAPiValue.objects.get(exact_url=_url)
             # Note standard QueryDict(request.body).dict() not working in test.py
             # thats why this "hack" is used
+            if "====" in request.body:
+                raise MyAPIException("Api is exploding when used with ===")
             if "=" in request.body:
                 parsed_patch_dict = QueryDict(request.body).dict()
             else:
@@ -106,7 +118,8 @@ def notify_users(request):
         msg = "User {} was informed about request {}".format(
             user.username, request)
         print msg
-        logger.debug(msg)
+        # giving too much noise but can be used if soemone need it
+        # logger.debug(msg)
 
 
 @csrf_exempt
@@ -127,7 +140,6 @@ def mocked_apis(request):
         if re.match(mocked_api.url_to_api, _url):
             # Notify about request all the users that are interested in it
             notify_users(request)
-
             # Get instantly the instances it API urls
             # so for example instances for specific URL like /api/account/12/
             if mocked_api.easily_updatable:
@@ -136,7 +148,10 @@ def mocked_apis(request):
                 if _response is not None:
                     return _response
                 # service possible PATCH
-                _response = patch_updatable_mocked_response(request, _url)
+                try:
+                    _response = patch_updatable_mocked_response(request, _url)
+                except MyAPIException:
+                    return HttpResponse(MockedApi.error_400(), status=400)
                 if _response is not None:
                     return _response
 
@@ -170,8 +185,13 @@ def mocked_apis(request):
                 else:
                     _response = HttpResponse(mocked_api.simpleHTML)
                 return _response
+            except MyAPIException:
+                # wrong used API in MyAPIException way
+                _callback_success = False
+                _response = HttpResponse(mocked_api.error_400, status=400)
+                return _response
             except:
-                # wrong used API
+                # wrong used API in b way
                 _callback_success = False
                 _response = HttpResponse(mocked_api.error_403, status=403)
                 return _response
@@ -180,14 +200,17 @@ def mocked_apis(request):
                     MockedAPiValue.objects.create(original_api=mocked_api,
                                                   mocked_return_value=mocked_api.mocked_return_value,
                                                   exact_url=_url)
-
+                additional_params = get_additional_params(request)
                 logger.debug(
-                    "Usage of API: {} for url {} :Response_was: {},_status={}"
-                    " ,response_status= {} ".format(mocked_api,
-                                                    _url,
-                                                    repr(_response),
-                                                    _callback_success,
-                                                    _response.status_code))
+                    "Usage of API: {} http_method={} for url {} :Response_was:"
+                    " {},_status={},response_status= {}, additional params ={} "
+                    "".format(mocked_api,
+                              request.method,
+                              request.path,
+                              repr(_response),
+                              _callback_success,
+                              _response.status_code,
+                              additional_params))
                 # storing the results of api calls which could be used
                 # later by some logic to repeat calls / . Please note they could
                 # be cleaned up later in some Celery /periodic task or by cron
