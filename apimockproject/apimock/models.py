@@ -24,7 +24,8 @@ class MockedApi(models.Model):
     http_method = models.CharField(
         choices=HTTP_Methods, default="GET", max_length=6)
     # custom error message for api for wrong usage
-    Error_403 = models.CharField(max_length=200, default="wrong used Data!")
+    error_403 = models.CharField(max_length=200, default="wrong used Data!")
+    error_400 = models.CharField(max_length=200, default="BAD request for this api")
     # if easily_updatable is set=>MockedApiResult could be easily manipulated
     # via POST .PATCH etc
     easily_updatable = models.BooleanField(default=False)

@@ -19,6 +19,6 @@ from django.conf.urls import url
 
 urlpatterns = [
     url(r'^$', views.home, name='home'),
-    url(r'^mocked/$', views.mocked, name='mocked'),
+    url(r'^all_apis_list/$', views.mocked, name='mocked'),
     url(r'^mocked/', views.mocked_apis, name='mocked_apis'),
 ]

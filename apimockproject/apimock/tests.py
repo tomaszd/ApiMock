@@ -3,6 +3,7 @@ import json
 from apimock.models import MockedApi
 from django.test import TestCase
 from django.test.client import Client
+from django.urls import reverse
 
 
 class MockedApiGETTestCase(TestCase):
@@ -16,7 +17,7 @@ class MockedApiGETTestCase(TestCase):
     def test_mocked_get_list_template(self):
         """check if simple mocked apis template could be returned"""
         c = Client()
-        response = c.get("/apimock/mocked/")
+        response = c.get(reverse('mocked'))
         self.assertEqual(response.status_code, 200)
         self.assertIn("Here is the list of all possible apis:",
                       response.content)
@@ -85,7 +86,7 @@ class MockedApiPOSTTestCase(TestCase):
     def test_mocked_get_list_template(self):
         """check if simple mocked apis template could be returned"""
         c = Client()
-        response = c.get("/apimock/mocked/")
+        response = c.get(reverse('mocked'))
         self.assertEqual(response.status_code, 200)
         self.assertIn("Here is the list of all possible apis:",
                       response.content)
@@ -139,6 +140,54 @@ class EasyUpdateTestCase(TestCase):
         self.assertIn('{"PLN": "100"}', response.content)
         response = c.get("/apimock/mocked/api/account/45/?format=json")
         self.assertIn('{"PLN": "100"}', response.content)
+
+
+class EasyUpdatePATCHTestCase(TestCase):
+    """Tests for PATCH behavior for easily updated apis"""
+    patch_url = "/apimock/mocked/api/account/45/?format=json"
+
+    def setUp(self):
+        MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)/$",
+                                 mocked_return_value={
+                                     "account": 157},
+                                 http_method="GET",
+                                 easily_updatable=True,
+                                 Error_403="Wrong Case please use PATCH better")
+
+    def test_mocked_api_set_new_value(self):
+        """check if using PostApi is possible"""
+        c = Client()
+        response = c.get(self.patch_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('{"account": 157}',
+                      response.content)
+        response = c.patch(
+            self.patch_url, data={"PLN": 20, "EURO": 20})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('{"PLN": 20, "account": 157, "EURO": 20}',
+                      response.content)
+        response = c.get(self.patch_url)
+        self.assertIn('{"PLN": 20, "account": 157, "EURO": 20}',
+                      response.content)
+
+    def test_mocked_api_update_value(self):
+        """check if using PostApi is possible"""
+        c = Client()
+        patch_url = "/apimock/mocked/api/account/45/?format=json"
+        response = c.get(self.patch_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('{"account": 157}',
+                      response.content)
+        response = c.patch(self.patch_url, data={"account": 456})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('{"account": 456}', response.content)
+        response = c.get(self.patch_url)
+        self.assertIn('{"account": 456}', response.content)
+        response = c.patch(self.patch_url, data={"account": 654})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('{"account": 654}', response.content)
+        response = c.get(self.patch_url)
+        self.assertIn('{"account": 654}', response.content)
 
 
 class PostLogicTestCase(TestCase):
