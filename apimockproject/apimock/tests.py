@@ -1,4 +1,5 @@
 import json
+import unittest
 
 from apimock.models import MockedApi
 from django.test import TestCase
@@ -12,7 +13,7 @@ class MockedApiGETTestCase(TestCase):
         MockedApi.objects.create(url_to_api="^mocked_get$",
                                  mocked_return_value={"value": "testValue"},
                                  http_method="GET",
-                                 Error_403="wrong used test Data")
+                                 error_403="wrong used test Data")
 
     def test_mocked_get_list_template(self):
         """check if simple mocked apis template could be returned"""
@@ -81,7 +82,7 @@ class MockedApiPOSTTestCase(TestCase):
                                  mocked_return_value={
                                      "value": "test_return_value_for_post"},
                                  http_method="POST",
-                                 Error_403="wrong used test Data,this is api for POST")
+                                 error_403="wrong used test Data,this is api for POST")
 
     def test_mocked_get_list_template(self):
         """check if simple mocked apis template could be returned"""
@@ -125,7 +126,7 @@ class EasyUpdateTestCase(TestCase):
                                      "value": "There is a product bought"},
                                  http_method="GET",
                                  easily_updatable=True,
-                                 Error_403="Send me Money")
+                                 error_403="Send me Money")
 
     def test_mocked_api_set_value(self):
         """check if using PostApi is possible"""
@@ -152,7 +153,7 @@ class EasyUpdatePATCHTestCase(TestCase):
                                      "account": 157},
                                  http_method="GET",
                                  easily_updatable=True,
-                                 Error_403="Wrong Case please use PATCH better")
+                                 error_403="Wrong Case please use PATCH better")
 
     def test_mocked_api_set_new_value(self):
         """check if using PostApi is possible"""
@@ -200,15 +201,16 @@ class PostLogicTestCase(TestCase):
             mocked_return_value="product was bought",
             http_method="POST",
             behavior_after_post="price=int(request.POST['price']);account_url=request.get_raw_uri().split('product_buy')[0];old_account=int(requests.get(account_url+'?format=json').json()['account']);new_account=old_account-price;requests.post(account_url+'?format=json',data={'account':str(new_account)})",
-            Error_403="Send me Money")
+            error_403="Send me Money")
 
         MockedApi.objects.create(url_to_api="^api/account/(?P<account>\d+)/$",
                                  mocked_return_value={
                                      "account": "555"},
                                  http_method="GET",
                                  easily_updatable=True,
-                                 Error_403="Send me Money")
+                                 error_403="Send me Money")
 
+    @unittest.skip("I don't want to run this test yet complicated api should be done better")
     def test_mocked_api_set_value(self):
         """check if using PostApi is possible
         It should create new values in old api"""

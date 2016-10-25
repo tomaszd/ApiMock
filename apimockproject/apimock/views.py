@@ -145,7 +145,7 @@ def mocked_apis(request):
             _callback_success = True
 
             if request.method != mocked_api.http_method:
-                return HttpResponse(mocked_api.Error_403, status=403)
+                return HttpResponse(mocked_api.error_403, status=403)
             # special case for complicated logic of posts
             if mocked_api.behavior_after_post and request.method == "POST":
                 pass
@@ -169,7 +169,7 @@ def mocked_apis(request):
             except:
                 # wrong used API
                 _callback_success = False
-                _response = HttpResponse(mocked_api.Error_403, status=403)
+                _response = HttpResponse(mocked_api.error_403, status=403)
                 return _response
             finally:
                 if _callback_success:
@@ -186,7 +186,8 @@ def mocked_apis(request):
                                                     _response.status_code))
                 # storing the results of api calls which could be used
                 # later by some logic to repeat calls / . Please note they could
-                # be cleaned up later in some Celery /periodic task or by cron jobs.
+                # be cleaned up later in some Celery /periodic task or by cron
+                # jobs.
                 MockedApiResult.objects.create(
                     original_api=mocked_api,
                     mocked_return_value=mocked_api.mocked_return_value,
