@@ -197,20 +197,25 @@ def mocked_apis(request):
                 return _response
             finally:
                 if _callback_success:
+                    # the clue of app= when proper url was reached for 1st time
+                    # apiValue is created and from now on it could
+                    # be GET / PATCH or POSTED. Thanks to that we can "store"
+                    # values of specific URLS like /api/account/345/ etc.
                     MockedAPiValue.objects.create(original_api=mocked_api,
                                                   mocked_return_value=mocked_api.mocked_return_value,
                                                   exact_url=_url)
                 additional_params = get_additional_params(request)
                 logger.debug(
                     "Usage of API: {} http_method={} for url {} :Response_was:"
-                    " {},_status={},response_status= {}, additional params ={} "
-                    "".format(mocked_api,
-                              request.method,
-                              request.path,
-                              repr(_response),
-                              _callback_success,
-                              _response.status_code,
-                              additional_params))
+                    " {},_status={},response_status= {}, POST params={} GET "
+                    "params={}".format(mocked_api,
+                                       request.method,
+                                       request.path,
+                                       repr(_response),
+                                       _callback_success,
+                                       _response.status_code,
+                                       request.POST.dict(),
+                                       request.GET.dict()))
                 # storing the results of api calls which could be used
                 # later by some logic to repeat calls / . Please note they could
                 # be cleaned up later in some Celery /periodic task or by cron
