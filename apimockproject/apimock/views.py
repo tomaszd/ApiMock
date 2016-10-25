@@ -63,13 +63,17 @@ def set_updatable_mocked_response(request, _url):
 def patch_updatable_mocked_response(request, _url):
     """PATCH Mocked Value for easily_updated URLs"""
     if request.method == "PATCH":
+        # no need to make update if no update params are sent? could be changed
+        if not request.body:
+            return None
         if MockedAPiValue.objects.filter(exact_url=_url):
             cached = MockedAPiValue.objects.get(exact_url=_url)
-            # import pdb
-            # pdb.set_trace()
             # Note standard QueryDict(request.body).dict() not working in test.py
-            # but working  on production
-            parsed_patch_dict = ast.literal_eval(request.body)
+            # thats why this "hack" is used
+            if "=" in request.body:
+                parsed_patch_dict = QueryDict(request.body).dict()
+            else:
+                parsed_patch_dict = ast.literal_eval(request.body)
             if cached.mocked_return_value:
                 cached.mocked_return_value.update(parsed_patch_dict)
             else:
