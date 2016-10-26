@@ -1,6 +1,9 @@
 Django==1.10.2
+django-filter==0.15.3
+djangorestframework==3.5.1
 json2html==1.0.1
 jsonfield==1.0.3
+Markdown==2.6.7
 pbr==1.10.0
 requests==2.11.1
 six==1.10.0
