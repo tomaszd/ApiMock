@@ -1,0 +1,48 @@
+START PROJECT
+
+1 create virtual env
+2 install all needed modules -pip install -r requirements.txt
+3 create new database  - python manage.py migrate
+4 create super user     -python manage.py createsuperuser
+5 you can dump data with test data -> python manage.py loaddata test.json
+6 start server -python manage.py runserver
+
+HOW TO USE IT
+
+7 enter /admin interface and see API mock model -those are patterns of urls
+8 you can choose different erorrs for selected API - 400 /403 /404
+9 Mocked API are listed in /apimock/all_apis_list/
+10 special address where apis are mocked is in /model
+User after navigating to /mocked/ some url is triggering usage of api
+11 When special URL is GET requested for API -> APIResult instance is created and
+API "stores" result for particular API call.
+
+e.g. -> user navigate to /mocked/api/account/345/ -> then /mocked/api/account/345
+will store default value of  API mock model (json )
+Then user can manipulate with those data by :
+GET -> get the proper value of /mocked/api/account/345/
+POST (json_data) -> new value of /mocked/api/account/345/ is data
+PATCH (patch_json_data)-> value of /mocked/api/account/345/  data i updated by  patch_json_data   
+
+note -> when parameter ?format=json is added -> the result is in json if not ->
+        simpleHtml format is returned
+
+12 Please create user group API_runners
+   Create users for that group.
+13 Whenever user requests the /mocked/ api all users belonging to group API_runners
+   are notified about it.
+  
+14 Whenever proper API is called -> there is new result in MockedApiResult
+   here are the information if api call was a success or fail and proper api url.
+15 Api call are stored in logfile.log
+16 User can use  call_utils.py functions to have logic to retry API calls ffrom logs
+   or use  MockedApiResult to find interesting calls to retry
+  
+ 
+TESTING
+
+to test application please run the command
+python manage.py tests
+ 
+ 
+
