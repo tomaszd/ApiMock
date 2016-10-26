@@ -38,7 +38,10 @@ note -> when parameter ?format=json is added -> the result is in json if not ->
 16 User can use  call_utils.py functions to have logic to retry API calls ffrom logs
    or use  MockedApiResult to find interesting calls to retry
   
- 
+17 user can add new mocked api and users via REST apis urls : 
+   mocked_apis- >/ mocked_apis/
+   users -> /users/
+   list of all RESTs ; / 
 TESTING
 
 to test application please run the command

@@ -23,6 +23,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import routers, serializers, viewsets
 
 # Serializers define the API representation.
+from apimock.models import MockedApi
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -48,9 +49,24 @@ class UserViewSet(viewsets.ModelViewSet):
 # APImock
 
 
+class MockedAPISerializer(serializers.HyperlinkedModelSerializer):
+    # groups = GroupSerializer(many=True)
+
+    class Meta:
+        model = MockedApi
+        fields = ('url_to_api', 'http_method', 'mocked_return_value',
+                  'error_403', 'error_400', 'easily_updatable',
+                  'behavior_after_post')
+
+
+class MockedApiViewSet(viewsets.ModelViewSet):
+    queryset = MockedApi.objects.all()
+    serializer_class = MockedAPISerializer
+
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
+router.register(r'mocked_apis', MockedApiViewSet)
 
 
 # Wire up our API using automatic URL routing.
