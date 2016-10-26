@@ -33,6 +33,11 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ('name',)
 
 
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
+
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     groups = GroupSerializer(many=True, read_only=True)
 
@@ -67,6 +72,7 @@ class MockedApiViewSet(viewsets.ModelViewSet):
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'mocked_apis', MockedApiViewSet)
+router.register(r'groups', GroupViewSet)
 
 
 # Wire up our API using automatic URL routing.
